@@ -56,6 +56,48 @@ def create_user(name, email, password):
     conn.close()
 
 
+def get_user_by_id(user_id):
+    conn = get_db()
+    user = conn.execute(
+        "SELECT * FROM users WHERE id = ?", (user_id,)
+    ).fetchone()
+    conn.close()
+    return user
+
+
+def get_user_expenses(user_id):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, amount, category, date, description "
+        "FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC",
+        (user_id,),
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_user_expense_summary(user_id):
+    conn = get_db()
+    row = conn.execute(
+        "SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total, "
+        "COALESCE(AVG(amount), 0) AS average FROM expenses WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+    conn.close()
+    return row
+
+
+def get_user_category_breakdown(user_id):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT category, COUNT(*) AS count, SUM(amount) AS total "
+        "FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC",
+        (user_id,),
+    ).fetchall()
+    conn.close()
+    return rows
+
+
 def seed_db():
     conn = get_db()
 

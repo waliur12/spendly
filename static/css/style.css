@@ -549,6 +549,138 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ------------------------------------------------------------------ */
+/* Profile                                                             */
+/* ------------------------------------------------------------------ */
+
+.profile-page {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+}
+
+.profile-info-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-name {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+.profile-meta {
+    font-size: 0.95rem;
+    color: var(--ink-muted);
+}
+
+.profile-meta-faint { color: var(--ink-faint); }
+
+/* 4-tile stats row (base .dash-stats ships 3 columns) */
+.profile-stats { grid-template-columns: repeat(4, 1fr); margin-bottom: 2.5rem; }
+
+.profile-section-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--ink);
+    margin: 0 0 1rem;
+}
+
+.profile-table-wrap {
+    overflow-x: auto;
+    background: var(--paper-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    margin-bottom: 2.5rem;
+}
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.profile-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--ink-muted);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.profile-table td {
+    padding: 0.9rem 1.25rem;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.profile-table tbody tr:last-child td { border-bottom: none; }
+
+.profile-table tbody tr:hover { background: var(--paper-warm); }
+
+.profile-amount {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+.profile-empty {
+    text-align: center;
+    color: var(--ink-faint);
+    padding: 1.5rem;
+}
+
+/* Transaction history + category breakdown, side by side */
+.profile-split {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.profile-col { min-width: 0; }  /* let the table column shrink & scroll */
+
+.profile-hint {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    margin: -0.5rem 0 1rem;
+}
+
+/* Category breakdown rows: name/value header above a full-width shaded bar */
+.profile-cat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-cat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.profile-cat-name { font-size: 0.95rem; color: var(--ink-soft); }
+
+.profile-cat-val {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Sequential single-hue fill; per-bar opacity (set inline) shades by spend */
+.profile-cat-bar { background: var(--accent); }
+
+/* nav-user is now a link — keep it inline with nav styling */
+.nav-user { text-decoration: none; }
+.nav-user:hover { color: var(--ink); }
+
+/* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -557,10 +689,16 @@ a { color: inherit; text-decoration: none; }
 
     .dash-stats { grid-template-columns: 1fr; }
 
+    .profile-stats { grid-template-columns: repeat(2, 1fr); }
+
+    .profile-split { grid-template-columns: 1fr; }
+
     .features-inner { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
-    .nav-links a:not(.nav-cta) { display: none; }
+    .nav-links a:not(.nav-cta):not(.nav-user) { display: none; }
     .hero { padding: 3rem 1rem 2rem; }
+    .profile-page { padding: 2rem 1rem 3rem; }
+    .profile-stats { grid-template-columns: 1fr; }
 }

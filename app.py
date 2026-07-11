@@ -1,12 +1,28 @@
 import os
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
-from database.db import get_db, init_db, seed_db, get_user_by_email, create_user
+from database.db import (
+    get_db,
+    init_db,
+    seed_db,
+    get_user_by_email,
+    create_user,
+    get_user_by_id,
+    get_user_expenses,
+    get_user_expense_summary,
+    get_user_category_breakdown,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+
+
+@app.template_filter("money")
+def money(value):
+    return f"৳{(value or 0):,.2f}"
 
 with app.app_context():
     init_db()
@@ -136,7 +152,52 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    user = get_user_by_id(user_id)
+    if user is None:                 # stale session (user no longer exists)
+        session.clear()
+        return redirect(url_for("login"))
+
+    expenses = get_user_expenses(user_id)
+    summary = get_user_expense_summary(user_id)
+    breakdown = get_user_category_breakdown(user_id)
+
+    total = summary["total"] or 0
+    max_total = max((r["total"] for r in breakdown), default=0)
+    # Augment each category row with its share of overall spend (guard /0) and a
+    # sequential shade intensity — one hue, light (low spend) -> dark (high spend).
+    categories = [
+        {
+            "category": r["category"],
+            "count": r["count"],
+            "total": r["total"],
+            "pct": (r["total"] / total * 100) if total else 0,
+            "intensity": (0.4 + 0.6 * (r["total"] / max_total)) if max_total else 0,
+        }
+        for r in breakdown
+    ]
+    top_category = categories[0]["category"] if categories else None
+
+    # Human-readable "member since" (e.g. "July 12, 2026"); fall back to raw value.
+    try:
+        member_since = datetime.strptime(
+            user["created_at"][:10], "%Y-%m-%d"
+        ).strftime("%B %d, %Y")
+    except (ValueError, TypeError):
+        member_since = user["created_at"]
+
+    return render_template(
+        "profile.html",
+        user=user,
+        member_since=member_since,
+        expenses=expenses,
+        summary=summary,
+        categories=categories,
+        top_category=top_category,
+    )
 
 
 @app.route("/expenses/add")
