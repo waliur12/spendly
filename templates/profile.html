@@ -7,9 +7,18 @@
 
     {# 1. Account info card #}
     <div class="profile-info-card">
-        <h1 class="profile-name">{{ user.name }}</h1>
-        <p class="profile-meta">{{ user.email }}</p>
-        <p class="profile-meta profile-meta-faint">Member since {{ member_since }}</p>
+        <div class="profile-avatar" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"></path>
+            </svg>
+        </div>
+        <div class="profile-identity">
+            <h1 class="profile-name">{{ user.name }}</h1>
+            <p class="profile-meta">{{ user.email }}</p>
+            <p class="profile-meta profile-meta-faint">Member since {{ member_since }}</p>
+        </div>
     </div>
 
     {# 2. Summary stats row #}
@@ -32,64 +41,73 @@
         </div>
     </div>
 
-    {# 3 + 4. Transaction history and category breakdown, side by side #}
+    {# 3 + 4. Transaction history and category breakdown, side by side.
+       Each column is one card with its title inside, so both cards top-align. #}
     <div class="profile-split">
 
-        {# Transaction history table #}
+        {# Transaction history #}
         <section class="profile-col">
-            <h2 class="profile-section-title">Transaction history</h2>
-            <div class="profile-table-wrap">
-                <table class="profile-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th class="profile-amount">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for e in expenses %}
-                        <tr>
-                            <td>{{ e.date }}</td>
-                            <td>{{ e.category }}</td>
-                            <td>{{ e.description or "—" }}</td>
-                            <td class="profile-amount">{{ e.amount|money }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="profile-empty">No transactions yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="profile-card">
+                <h2 class="profile-card-title">Transaction history</h2>
+                <div class="profile-table-scroll">
+                    <table class="profile-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th class="profile-amount">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in expenses %}
+                            <tr>
+                                <td>{{ e.date }}</td>
+                                <td>
+                                    {# Pill shaded by this row's spend (light -> saturated green) #}
+                                    <span class="profile-pill"
+                                          style="background: color-mix(in srgb, var(--accent) {{ e.mix }}%, var(--paper-card))">
+                                        {{ e.category }}
+                                    </span>
+                                </td>
+                                <td>{{ e.description or "—" }}</td>
+                                <td class="profile-amount">{{ e.amount|money }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="profile-empty">No transactions yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
-        {# Category breakdown — bars shaded light→dark by amount spent #}
+        {# Category breakdown — bars shaded light->dark by amount spent #}
         <section class="profile-col">
-            <h2 class="profile-section-title">Category breakdown</h2>
-            {% if categories %}
-            <p class="profile-hint">Shaded by amount spent</p>
-            <div class="dash-bars">
-                {% for c in categories %}
-                <div class="profile-cat">
-                    <div class="profile-cat-head">
-                        <span class="profile-cat-name">{{ c.category }}</span>
-                        <span class="profile-cat-val">{{ c.total|money }} · {{ "%.0f"|format(c.pct) }}%</span>
+            <div class="profile-card">
+                <h2 class="profile-card-title">Category breakdown</h2>
+                {% if categories %}
+                <p class="profile-hint">Shaded by amount spent</p>
+                <div class="profile-bars">
+                    {% for c in categories %}
+                    <div class="profile-cat">
+                        <div class="profile-cat-head">
+                            <span class="profile-cat-name">{{ c.category }}</span>
+                            <span class="profile-cat-val">{{ c.total|money }} · {{ "%.0f"|format(c.pct) }}%</span>
+                        </div>
+                        <div class="dash-bar-track">
+                            <div class="dash-bar profile-cat-bar"
+                                 style="width: {{ c.pct }}%; opacity: {{ c.intensity }}"></div>
+                        </div>
                     </div>
-                    <div class="dash-bar-track">
-                        <div class="dash-bar profile-cat-bar"
-                             style="width: {{ c.pct }}%; opacity: {{ c.intensity }}"></div>
-                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="dash-bars">
+                {% else %}
                 <p class="profile-empty">No spending to break down yet.</p>
+                {% endif %}
             </div>
-            {% endif %}
         </section>
 
     </div>

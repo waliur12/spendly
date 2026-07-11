@@ -46,19 +46,25 @@ No new tables, columns, or constraints.
 ## Templates
 - **Create:**
   - `templates/profile.html` — extends `base.html`; composed of four sections:
-    1. **Account info card** — the user's name, email, and "member since" date
-       shown in a **human-readable format** (e.g. "July 12, 2026"), formatted in
-       the route from `created_at`.
+    1. **Account info card** — a **rounded placeholder avatar** (a generic user
+       silhouette in a circular accent-tinted disc; no upload feature) next to
+       the user's name, email, and "member since" date shown in a
+       **human-readable format** (e.g. "July 12, 2026"), formatted in the route
+       from `created_at`.
     2. **Summary stats row** — a row of stat tiles: total spent, number of
        expenses, average expense, and top category (the first row of the
        category breakdown, or a neutral placeholder when there are no expenses).
     3 + 4. **Transaction history and category breakdown, side by side** — laid
        out in a **two-column split** (transaction history in the wider left
        column, category breakdown in the right column); the columns stack
-       vertically on narrower screens.
+       vertically on narrower screens. Each column is a **single card with its
+       section title *inside* the card**, so both cards top-align.
        - **Transaction history table** — columns Date, Category, Description,
-         Amount; rows from `get_user_expenses()`. Shows an empty-state message
-         when the user has no expenses.
+         Amount; rows from `get_user_expenses()`. The **Category** cell renders
+         as a **pill shaded by that row's spend** (same single-hue green scale,
+         mixed lighter→more saturated with the card colour by the expense amount
+         relative to the largest). Shows an empty-state message when the user has
+         no expenses.
        - **Category breakdown** — one row per category (name, total, and its
          share of overall spend), with a proportional bar **shaded by amount
          spent**: a single-hue (green `--accent`) sequential scale, light for
@@ -84,10 +90,13 @@ No new tables, columns, or constraints.
     `get_user_category_breakdown`, all using parameterized queries and the
     existing `get_db()` connection pattern.
 - `templates/base.html` — link the navbar user name to `/profile` (see Templates).
-- `static/css/style.css` — add styles for the profile dashboard (info card, stat
-  tiles row, the **two-column split** holding the transaction table and category
-  breakdown, and the spend-shaded breakdown bars) using existing CSS variables
-  only. The split collapses to one column on narrow screens.
+- `static/css/style.css` — add styles for the profile dashboard (info card with
+  a **rounded avatar**, stat tiles row, the **two-column split** whose columns
+  are unified cards with the title inside, the spend-shaded breakdown bars, and
+  the spend-shaded **category pills**) using existing CSS variables only. Pill
+  shades use `color-mix(in srgb, var(--accent) N%, var(--paper-card))` — a
+  computed percentage, not new hex. The split collapses to one column on narrow
+  screens.
 
 ## Files to create
 - `templates/profile.html`
@@ -103,10 +112,14 @@ Python/Jinja — no charting library.
 - Passwords hashed with werkzeug (never display or expose `password_hash` in the
   template or route)
 - Use CSS variables — never hardcode hex values (the spend-shaded breakdown bars
-  vary a single existing hue via computed opacity, not new hex colors)
-- The category breakdown encodes spend magnitude, so its color scale is
-  **sequential — one hue, light→dark** (not a rainbow, not judgemental
-  status/red-amber-green colors)
+  vary a single existing hue via computed opacity, and the category pills via a
+  computed `color-mix` percentage — no new hex colors)
+- The category breakdown bars **and** the transaction category pills encode spend
+  magnitude, so their color scale is **sequential — one hue, light→dark** (not a
+  rainbow, not judgemental status/red-amber-green colors); pills stay
+  text-readable by mixing accent with the card colour, not by fading text
+- The account avatar is a self-contained inline SVG placeholder (no external
+  image/CDN, no new dependency) shown in a circular container
 - The "member since" date is formatted human-readably in the route (via
   `datetime`), never shown as a raw timestamp
 - All templates extend `base.html`
@@ -122,15 +135,17 @@ Python/Jinja — no charting library.
 ## Definition of done
 - [ ] Visiting `/profile` while logged out redirects to `/login`
 - [ ] Visiting `/profile` while logged in renders the page with no errors
-- [ ] **Account info:** the page shows the logged-in user's name, email, and a
-      "member since" date shown human-readably (e.g. "July 12, 2026"), not a raw
-      timestamp
+- [ ] **Account info:** the page shows a rounded placeholder avatar next to the
+      logged-in user's name, email, and a "member since" date shown human-readably
+      (e.g. "July 12, 2026"), not a raw timestamp
 - [ ] **Summary stats row:** shows total spent, number of expenses, average
       expense, and top category, computed only from the logged-in user's expenses
 - [ ] **Two-column layout:** the transaction history and category breakdown sit
-      side by side on desktop and stack to one column on narrow screens
+      side by side on desktop (each a card with its title inside, both cards
+      top-aligned) and stack to one column on narrow screens
 - [ ] **Transaction history table:** lists the user's expenses with Date,
-      Category, Description, and Amount, newest first
+      Category, Description, and Amount, newest first, with the Category shown as
+      a pill shaded by that row's spend
 - [ ] **Category breakdown:** shows one row per category with its total and its
       share of overall spend; the shares are consistent with the totals, and each
       bar is shaded on a single-hue light→dark scale by amount spent (the highest

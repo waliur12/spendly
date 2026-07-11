@@ -161,9 +161,23 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
-    expenses = get_user_expenses(user_id)
+    rows = get_user_expenses(user_id)
     summary = get_user_expense_summary(user_id)
     breakdown = get_user_category_breakdown(user_id)
+
+    # Per-row pill shade: mix the accent hue with the card colour by this
+    # expense's amount relative to the largest one (light -> saturated).
+    max_amount = max((r["amount"] for r in rows), default=0)
+    expenses = [
+        {
+            "date": r["date"],
+            "category": r["category"],
+            "description": r["description"],
+            "amount": r["amount"],
+            "mix": (12 + 40 * (r["amount"] / max_amount)) if max_amount else 12,
+        }
+        for r in rows
+    ]
 
     total = summary["total"] or 0
     max_total = max((r["total"] for r in breakdown), default=0)
